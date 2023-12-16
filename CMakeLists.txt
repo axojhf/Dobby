@@ -390,7 +390,6 @@ if (SYSTEM.Android)
         ANDROID_ARM_MODE arm
         )
     endif ()
-    
   endif ()
 endif ()
 
@@ -399,6 +398,14 @@ if (SYSTEM.Linux)
     target_link_libraries(dobby dl)
   endif ()
 endif ()
+
+# Install
+if(DOBBY_GENERATE_SHARED)
+  install(TARGETS dobby)
+else ()
+  install(TARGETS dobby_static)
+endif ()
+install(DIRECTORY "include")
 
 # ---
 

@@ -377,9 +377,9 @@ endif ()
 # ---
 
 if (SYSTEM.Android)
-  target_link_libraries(dobby log)
   if (PROCESSOR.ARM)
     if(DOBBY_GENERATE_SHARED)
+      target_link_libraries(dobby log)
       set_target_properties(dobby
         PROPERTIES
         ANDROID_ARM_MODE arm

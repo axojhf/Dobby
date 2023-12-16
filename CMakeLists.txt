@@ -401,11 +401,11 @@ endif ()
 
 # Install
 if(DOBBY_GENERATE_SHARED)
-  install(TARGETS dobby)
+  install(TARGETS dobby DESTINATION ${CMAKE_INSTALL_LIBDIR})
 else ()
-  install(TARGETS dobby_static)
+  install(TARGETS dobby_static DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif ()
-install(DIRECTORY "include")
+install(DIRECTORY "include" DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # ---
 

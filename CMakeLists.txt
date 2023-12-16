@@ -16,6 +16,8 @@ auto_source_group("." "auto-source-group" "\\.(cc|cpp|c|h)$")
 
 # --- options
 
+option(DOBBY_GENERATE_SHARED "Build shared library" ON)
+
 option(DOBBY_DEBUG "Enable debug logging" OFF)
 
 option(NearBranch "Enable near branch trampoline" ON)
@@ -314,55 +316,57 @@ message(STATUS "[Dobby] ${DOBBY_BUILD_VERSION}")
 
 # ---
 
-add_library(dobby SHARED
-  ${dobby.HEADER_FILE_LIST}
-  ${dobby.SOURCE_FILE_LIST}
-  ${logging.SOURCE_FILE_LIST}
-  ${misc_helper.SOURCE_FILE_LIST}
-  ${dobby.plugin.SOURCE_FILE_LIST}
-  )
+if(DOBBY_GENERATE_SHARED)
+  add_library(dobby SHARED
+    ${dobby.HEADER_FILE_LIST}
+    ${dobby.SOURCE_FILE_LIST}
+    ${logging.SOURCE_FILE_LIST}
+    ${misc_helper.SOURCE_FILE_LIST}
+    ${dobby.plugin.SOURCE_FILE_LIST}
+    )
 
-target_include_directories(dobby PUBLIC
-  include
-  )
+  target_include_directories(dobby PUBLIC
+    include
+    )
 
+  set_target_properties(dobby
+    PROPERTIES
+    LINK_FLAGS "${linker_flags}"
+    COMPILE_FLAGS "${compiler_flags}"
+    )
+
+  target_compile_definitions(dobby PRIVATE
+    "COMPILE_DEFINITIONS ${compile_definitions}"
+    )
+else ()
+  add_library(dobby_static STATIC
+    ${dobby.HEADER_FILE_LIST}
+    ${dobby.SOURCE_FILE_LIST}
+    ${logging.SOURCE_FILE_LIST}
+    ${misc_helper.SOURCE_FILE_LIST}
+    ${dobby.plugin.SOURCE_FILE_LIST}
+    )
+
+  target_include_directories(dobby_static PUBLIC
+    include
+    )
+
+  set_target_properties(dobby_static
+    PROPERTIES OUTPUT_NAME "dobby"
+    )
+
+  # ---
+
+  set_target_properties(dobby_static
+    PROPERTIES
+    COMPILE_FLAGS "${compiler_flags}"
+    )
+
+  target_compile_definitions(dobby_static PRIVATE
+    "COMPILE_DEFINITIONS ${compile_definitions}"
+    )
+endif ()
 # ---
-
-add_library(dobby_static STATIC
-  ${dobby.HEADER_FILE_LIST}
-  ${dobby.SOURCE_FILE_LIST}
-  ${logging.SOURCE_FILE_LIST}
-  ${misc_helper.SOURCE_FILE_LIST}
-  ${dobby.plugin.SOURCE_FILE_LIST}
-  )
-
-target_include_directories(dobby_static PUBLIC
-  include
-  )
-
-set_target_properties(dobby_static
-  PROPERTIES OUTPUT_NAME "dobby"
-  )
-
-# ---
-
-set_target_properties(dobby
-  PROPERTIES
-  LINK_FLAGS "${linker_flags}"
-  COMPILE_FLAGS "${compiler_flags}"
-  )
-
-set_target_properties(dobby_static
-  PROPERTIES
-  COMPILE_FLAGS "${compiler_flags}"
-  )
-
-target_compile_definitions(dobby PRIVATE
-  "COMPILE_DEFINITIONS ${compile_definitions}"
-  )
-target_compile_definitions(dobby_static PRIVATE
-  "COMPILE_DEFINITIONS ${compile_definitions}"
-  )
 
 # ---
 
@@ -375,19 +379,25 @@ endif ()
 if (SYSTEM.Android)
   target_link_libraries(dobby log)
   if (PROCESSOR.ARM)
-    set_target_properties(dobby
-      PROPERTIES
-      ANDROID_ARM_MODE arm
-      )
-    set_target_properties(dobby_static
-      PROPERTIES
-      ANDROID_ARM_MODE arm
-      )
+    if(DOBBY_GENERATE_SHARED)
+      set_target_properties(dobby
+        PROPERTIES
+        ANDROID_ARM_MODE arm
+        )
+    else ()
+      set_target_properties(dobby_static
+        PROPERTIES
+        ANDROID_ARM_MODE arm
+        )
+    endif ()
+    
   endif ()
 endif ()
 
 if (SYSTEM.Linux)
-  target_link_libraries(dobby dl)
+  if(DOBBY_GENERATE_SHARED)
+    target_link_libraries(dobby dl)
+  endif ()
 endif ()
 
 # ---
